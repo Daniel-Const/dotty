@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
     "log"
@@ -12,7 +12,7 @@ type Profile struct {
     Name        string
     Os          string
     Location    string
-    dots        []*Dot
+    Dots        []*Dot
 }
 
 // Create a Profile struct from a name
@@ -53,9 +53,13 @@ func (p *Profile) Load() *Profile {
         log.Fatal(err)
     }
 
-    p.dots = dots
+    p.Dots = dots
 
     return p
+}
+
+func (p *Profile) Deploy() {
+    // TODO
 }
 
 
