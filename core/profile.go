@@ -34,15 +34,16 @@ func (p *Profile) Load() *Profile {
         log.Fatal(err)
     }
     defer file.Close()
-
+    
+    // Scan map and create dots line by line
     scanner := bufio.NewScanner(file)
-
     for scanner.Scan() {
         line := scanner.Text()
         parts := strings.Split(line, ":")
         if len(parts) < 2 {
             log.Fatal("Err: Map file incorrectly formatted")
         }
+
         fileName := strings.Trim(parts[0], " ")
         toPath   := strings.Trim(parts[1], " ")
         fromPath := p.Location+"/"+fileName
@@ -53,9 +54,7 @@ func (p *Profile) Load() *Profile {
             log.Fatal(err)
         }
 
-        isDir := file.Mode().IsDir()
-        dot := Dot{fromPath, toPath, isDir}
-        dots = append(dots, &dot)
+        dots = append(dots, &Dot{fromPath, toPath, file.Mode().IsDir()})
     }
 
     if err := scanner.Err(); err != nil {
@@ -70,13 +69,6 @@ func (p *Profile) Load() *Profile {
 func (p *Profile) Deploy() error {
     for i := range p.Dots {
         dot := p.Dots[i]
-
-        // Make dirs if not exist
-        dirpath := filepath.Dir(dot.DeployPath)
-        if err := os.MkdirAll(dirpath, os.ModePerm); err != nil {
-            log.Fatal(err)
-        }
-
         if dot.IsDir {
             if err := copyDir(dot.Path, dot.DeployPath); err != nil {
                 log.Fatal(err)
@@ -93,17 +85,32 @@ func (p *Profile) Deploy() error {
     return nil
 }
 
+/*
+ * Copy 'from' file and place it at 'to' path.
+ * Preserves file permissions 
+ */
 func copyFile(from string, to string) error {
-    log.Println("Copying file")
+    
+    // Make dirs if not exist
+    dirpath := filepath.Dir(to)
+    if err := os.MkdirAll(dirpath, os.ModePerm); err != nil {
+        log.Fatal(err)
+    }
 
     // Read dot file contents
     file, err := os.ReadFile(from)
     if err != nil {
         log.Fatal(err)
     }
+    
+    // Preserve file permissions
+    stat, err := os.Stat(from)
+    if err != nil {
+        log.Fatal(err)
+    }
 
     // Write dot file contents
-    err = os.WriteFile(to, file, 0644)
+    err = os.WriteFile(to, file, stat.Mode())
     if err != nil {
         log.Fatal(err)
     }
@@ -111,8 +118,45 @@ func copyFile(from string, to string) error {
     return nil 
 }
 
+/*
+ * Copy full directory tree at 'from' and place it at 'to'
+ */
 func copyDir(from string, to string) error {
-    // TODO: Implement
+    stat, err := os.Stat(from)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    if !stat.IsDir() {
+        log.Fatalf("Expecting directory at %s", from)
+    }
+    
+    // Create path to the directory
+    err = os.MkdirAll(to, stat.Mode())
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    files, err := os.ReadDir(from)
+    for i := range files {
+        fromPath := filepath.Join(from, files[i].Name())
+        toPath := filepath.Join(to, files[i].Name())
+        
+        // Recursively copy next dir
+        if files[i].IsDir() {
+            err = copyDir(fromPath, toPath)
+            if err != nil {
+                return err
+            }
+        } else {
+            // Copy the file
+            err = copyFile(fromPath, toPath)
+            if err != nil {
+                return err
+            }
+        }
+    }
+
     return nil
 }
 

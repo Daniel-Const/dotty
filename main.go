@@ -1,15 +1,13 @@
 package main
 
-import (
-    "dotty/cmd"
-)
-
 /*
  * Main CLI App
- *
- * Prompt to select and deploy a profile
  */
+
+import "dotty/cmd"
+
 
 func main() {
    cmd.Execute() 
 }
+
