@@ -7,4 +7,5 @@ type Dot struct {
     // description string  // A short description (optional)
     Path        string  // Current path of the file
     DeployPath  string  // Where we need to put this file (From the dotty.map)
+    IsDir       bool 
 }

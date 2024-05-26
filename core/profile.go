@@ -1,10 +1,11 @@
 package core
 
 import (
-    "log"
-    "strings"
-    "bufio"
-    "os"
+	"bufio"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 
@@ -44,8 +45,16 @@ func (p *Profile) Load() *Profile {
         }
         fileName := strings.Trim(parts[0], " ")
         toPath   := strings.Trim(parts[1], " ")
+        fromPath := p.Location+"/"+fileName
+        
+        // Determine if directory or file
+        file, err := os.Stat(fromPath)
+        if err != nil {
+            log.Fatal(err)
+        }
 
-        dot := Dot{p.Location+"/"+fileName, toPath}
+        isDir := file.Mode().IsDir()
+        dot := Dot{fromPath, toPath, isDir}
         dots = append(dots, &dot)
     }
 
@@ -58,9 +67,52 @@ func (p *Profile) Load() *Profile {
     return p
 }
 
-func (p *Profile) Deploy() {
-    // TODO
+func (p *Profile) Deploy() error {
+    for i := range p.Dots {
+        dot := p.Dots[i]
+
+        // Make dirs if not exist
+        dirpath := filepath.Dir(dot.DeployPath)
+        if err := os.MkdirAll(dirpath, os.ModePerm); err != nil {
+            log.Fatal(err)
+        }
+
+        if dot.IsDir {
+            if err := copyDir(dot.Path, dot.DeployPath); err != nil {
+                log.Fatal(err)
+            }
+        } else {
+            if err := copyFile(dot.Path, dot.DeployPath); err != nil {
+                log.Fatal(err)
+            }
+        }
+
+        log.Printf("Copied %s to %s", dot.Path, dot.DeployPath)
+    }
+
+    return nil
 }
 
+func copyFile(from string, to string) error {
+    log.Println("Copying file")
 
+    // Read dot file contents
+    file, err := os.ReadFile(from)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Write dot file contents
+    err = os.WriteFile(to, file, 0644)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    return nil 
+}
+
+func copyDir(from string, to string) error {
+    // TODO: Implement
+    return nil
+}
 
