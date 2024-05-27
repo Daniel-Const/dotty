@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 
@@ -17,11 +18,10 @@ type Profile struct {
 }
 
 // Create a Profile struct from a name
-func NewProfile(name string) *Profile {
+func NewProfile(path string) *Profile {
     profile := Profile{}
-    profile.Name = name
-    profile.Location = "./profiles/" + name
-
+    profile.Name = filepath.Base(path)
+    profile.Location = path 
     return &profile
 }
 
@@ -29,7 +29,7 @@ func (p *Profile) Load() *Profile {
     var dots []*Dot
 
     // Read .map file and create a slice of dots
-    file, err := os.Open(p.Location + "/dotty.map")
+    file, err := os.Open(filepath.Join(p.Location, "dotty.map"))
     if err != nil {
         log.Fatal(err)
     }
@@ -46,7 +46,7 @@ func (p *Profile) Load() *Profile {
 
         fileName := strings.Trim(parts[0], " ")
         toPath   := strings.Trim(parts[1], " ")
-        fromPath := p.Location+"/"+fileName
+        fromPath := filepath.Join(p.Location, fileName)
         
         // Determine if directory or file
         file, err := os.Stat(fromPath)
@@ -54,7 +54,7 @@ func (p *Profile) Load() *Profile {
             log.Fatal(err)
         }
 
-        dots = append(dots, &Dot{fromPath, toPath, file.Mode().IsDir()})
+        dots = append(dots, NewDot(fromPath, toPath, file.Mode().IsDir()))
     }
 
     if err := scanner.Err(); err != nil {
@@ -67,8 +67,34 @@ func (p *Profile) Load() *Profile {
 }
 
 func (p *Profile) Deploy() error {
+    backupName := time.Now().Format("2006-01-02_15:04:05.000000")
+    backupRoot := filepath.Join("./backup", backupName)
     for i := range p.Dots {
         dot := p.Dots[i]
+        
+        // Create backups if file / dir exists already
+        if stat, err := os.Stat(dot.DeployPath); err == nil {
+            backupPath := filepath.Join(backupRoot, filepath.Base(dot.DeployPath))
+            log.Printf("Creating backup for %s", dot.DeployPath)
+
+            if err := os.MkdirAll(backupRoot, os.ModePerm); err != nil {
+                log.Fatal(err)
+            }
+
+            if stat.IsDir() {
+                err := copyDir(dot.DeployPath, backupPath)
+                if err != nil {
+                    log.Fatal(err)
+                }
+            } else {
+                err := copyFile(dot.DeployPath, backupPath)
+                if err != nil {
+                    log.Fatal(err)
+                }
+            }
+        }
+        
+        // Copy files to their destination
         if dot.IsDir {
             if err := copyDir(dot.Path, dot.DeployPath); err != nil {
                 log.Fatal(err)
