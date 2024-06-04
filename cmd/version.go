@@ -13,7 +13,7 @@ func init() {
 var versionCmd = &cobra.Command{
   Use:   "version",
   Short: "0.0.1",
-  Long:  `Still in core development`,
+  Long:  `Version 0.0.1`,
   Run: func(cmd *cobra.Command, args []string) {
     fmt.Println("Dotty v0.0.1")
   },

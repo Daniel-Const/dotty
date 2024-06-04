@@ -16,7 +16,7 @@ var DeployCommand = &cobra.Command {
     Long:   "Copy all of the dotfiles to the locations specified in the map file",
     Args:   cobra.ExactArgs(1),
     RunE:   func(cmd *cobra.Command, args []string) error {
-        p := core.NewProfile(args[0]).Load()
+        p := core.NewProfile(args[0]).LoadMap()
         return p.Deploy()
     },
 }

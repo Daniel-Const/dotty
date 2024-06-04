@@ -17,7 +17,6 @@ type Profile struct {
     Dots        []*Dot
 }
 
-// Create a Profile struct from a name
 func NewProfile(path string) *Profile {
     profile := Profile{}
     profile.Name = filepath.Base(path)
@@ -25,7 +24,7 @@ func NewProfile(path string) *Profile {
     return &profile
 }
 
-func (p *Profile) Load() *Profile {
+func (p *Profile) LoadMap() *Profile {
     var dots []*Dot
 
     // Read .map file and create a slice of dots
@@ -66,6 +65,17 @@ func (p *Profile) Load() *Profile {
     return p
 }
 
+/*
+ * Copy files at destination paths into a profile
+ */
+func (p *Profile) Load() *Profile {
+    // TODO: Implement
+    return nil
+}
+
+/*
+ * Copy all of the dotfiles to the locations in the map file
+ */
 func (p *Profile) Deploy() error {
     backupName := time.Now().Format("2006-01-02_15:04:05.000000")
     backupRoot := filepath.Join("./backup", backupName)
@@ -185,4 +195,3 @@ func copyDir(from string, to string) error {
 
     return nil
 }
-
