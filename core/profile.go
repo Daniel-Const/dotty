@@ -68,8 +68,20 @@ func (p *Profile) LoadMap() *Profile {
 /*
  * Copy files at destination paths into a profile
  */
-func (p *Profile) Load() *Profile {
-    // TODO: Implement
+func (p *Profile) Load() error {
+    for i := range p.Dots {
+        dot := p.Dots[i]
+        log.Printf("Loading dotfile into profile: %s", dot.DeployPath)
+        var err error
+        if dot.IsDir {
+            err = copyDir(dot.DeployPath, dot.Path)
+        } else {
+            err = copyFile(dot.DeployPath, dot.Path)
+        }
+        if err != nil {
+            log.Fatal(err)
+        }
+    }
     return nil
 }
 
@@ -125,28 +137,28 @@ func (p *Profile) Deploy() error {
  * Copy 'from' file and place it at 'to' path.
  * Preserves file permissions 
  */
-func copyFile(from string, to string) error {
+func copyFile(source string, dest string) error {
     
     // Make dirs if not exist
-    dirpath := filepath.Dir(to)
+    dirpath := filepath.Dir(source)
     if err := os.MkdirAll(dirpath, os.ModePerm); err != nil {
         log.Fatal(err)
     }
 
     // Read dot file contents
-    file, err := os.ReadFile(from)
+    file, err := os.ReadFile(source)
     if err != nil {
         log.Fatal(err)
     }
     
     // Preserve file permissions
-    stat, err := os.Stat(from)
+    stat, err := os.Stat(source)
     if err != nil {
         log.Fatal(err)
     }
 
     // Write dot file contents
-    err = os.WriteFile(to, file, stat.Mode())
+    err = os.WriteFile(dest, file, stat.Mode())
     if err != nil {
         log.Fatal(err)
     }
@@ -157,36 +169,36 @@ func copyFile(from string, to string) error {
 /*
  * Copy full directory tree at 'from' and place it at 'to'
  */
-func copyDir(from string, to string) error {
-    stat, err := os.Stat(from)
+func copyDir(source string, dest string) error {
+    stat, err := os.Stat(source)
     if err != nil {
         log.Fatal(err)
     }
 
     if !stat.IsDir() {
-        log.Fatalf("Expecting directory at %s", from)
+        log.Fatalf("Expecting directory at %s", source)
     }
     
     // Create path to the directory
-    err = os.MkdirAll(to, stat.Mode())
+    err = os.MkdirAll(dest, stat.Mode())
     if err != nil {
         log.Fatal(err)
     }
 
-    files, err := os.ReadDir(from)
+    files, err := os.ReadDir(source)
     for i := range files {
-        fromPath := filepath.Join(from, files[i].Name())
-        toPath := filepath.Join(to, files[i].Name())
+        sourcePath := filepath.Join(source, files[i].Name())
+        destPath := filepath.Join(dest, files[i].Name())
         
         // Recursively copy next dir
         if files[i].IsDir() {
-            err = copyDir(fromPath, toPath)
+            err = copyDir(sourcePath, destPath)
             if err != nil {
                 return err
             }
         } else {
             // Copy the file
-            err = copyFile(fromPath, toPath)
+            err = copyFile(sourcePath, sourcePath)
             if err != nil {
                 return err
             }
