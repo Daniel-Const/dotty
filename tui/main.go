@@ -7,25 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-const (
-    deployCommand int = iota
-    loadCommand
-)
 
-
-// Custom tea Cmd/Msg
-type runningMsg int 
-func runCommand(command int) tea.Msg {
-    return func() tea.Msg {
-        // TODO: Implement run the command
-        return runningMsg(command)
-    } 
-}
-
-type Command struct {
-    Name string
-    Desc string
-}
 
 
 // Main bubbletea model for the app
@@ -35,7 +17,7 @@ type Model struct {
     running  int
 }
 
-func New(commands []Command) Model {
+func NewModel(commands []Command) Model {
     m := Model{commands, 0, -1} 
     return m
 }
@@ -63,6 +45,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         case "enter", "":
             // TODO: Implement actually run the command
             m.running = m.cursor
+            return m, profileCmd(m.cursor)
         }
     }
     return m, nil

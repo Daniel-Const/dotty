@@ -2,3 +2,4 @@ profiles
 bin
 dotty
 backup
+*.log
