@@ -1,4 +1,4 @@
-module dotty
+module github.com/Daniel-Const/dotty 
 
 go 1.22.3
 

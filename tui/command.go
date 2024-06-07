@@ -3,7 +3,7 @@ package tui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
-	"dotty/core"
+	"github.com/Daniel-Const/dotty/core"
 )
 
 // TODO: Better way to map cursor to command?

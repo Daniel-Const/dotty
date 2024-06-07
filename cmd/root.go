@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
     tea "github.com/charmbracelet/bubbletea"
 
-    "dotty/tui"
+    "github.com/Daniel-Const/dotty/tui"
 )
 
 var (

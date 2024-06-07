@@ -4,7 +4,7 @@ package main
  * Main CLI App
  */
 
-import "dotty/cmd"
+import "github.com/Daniel-Const/dotty/cmd"
 
 
 func main() {
