@@ -1,29 +1,28 @@
 # TODO
 
-## Bugs
+## Features
 
-- Handle file (in .map) not in profile?
+- Finish implementing MVP bubbletea TUI
+- Getting profile path for TUI: Enter path / Search / Config ?
+- Better backups handling
+
+## Testing
+
+- Write unit tests!
 
 ## Prettify
 
-- Nicer outputs using lipgloss
+- Better lipgloss styling
 - Tidy up cobra CLI setup
-
-## Features
-
-- Load: Copy 'to' paths into a dotty.map into a profile
-- TUI: step through creating a profile with a TUI (bubbletea)
-- Install instructions + proper github module
-- Deploy by giving a link to a github profile
-- Install scripts..
 
 ## Later
 
 - Templates: Create initial dotty.map profiles based on OS templates
 - Fun animation! little dots bouncing onto the screen onto the paths
-- Extend dotty.map file...
+- Proper deploy / install setup
+- Extend dotty.map file?
     copy .zshrc : ~/.zshrc
     run install.sh
-    ...
+    etc...
 
 

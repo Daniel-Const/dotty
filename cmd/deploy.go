@@ -6,11 +6,11 @@ import (
 )
 
 func init() {
-    rootCmd.AddCommand(DeployCommand)
+    rootCmd.AddCommand(DeployCmd)
 }
 
 
-var DeployCommand = &cobra.Command {
+var DeployCmd = &cobra.Command {
     Use:    "deploy",
     Short:  "Deploy dot files in a profile",
     Long:   "Copy all of the dotfiles to the locations specified in the map file",
