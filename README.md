@@ -1,10 +1,10 @@
 # Dotty
 
-A simple Dot file manager!
+A very simple Dotfile manager!
 
 - Manage dot files in one git repository
-- Create multiple profiles of dotfile configs
-- Easily deploy dotfile config on any machine
+- Load dotfiles into a new profile
+- Deploy dotfiles easily!
 
 ## Usage
 
@@ -16,17 +16,19 @@ A simple Dot file manager!
 > mkdir bin/ && go build -o bin/
 ```
 
-## Problem
+## Idea
 
-I have multiple devices with different operating systems. I want to be able to configure them with different dotfile setups,
-manage them in one repository, and easily deploy / update them on different machines.
+The intention is for Dotty to be as simple as possible, easy to pickup and to leave more control
+in users hands.
 
-## Solution
+Dotty is based on profiles. You have one directory with all your machines config files / directories,
+and a mapping file which specifies where those configs need to be copied to.
 
-A Go CLI app that automatically copies all of the dot files to the right locations :)
+This way you can specify a profile for multiple different machines / operating systems that may have
+slightly different configurations or destination paths
 
-- The dotty.map file maps dotfiles in a profile to deploy locations.
-- This way I can create profiles for my pc, laptop etc. Manage them in one repository, and easily deploy the configs to each machine
+You can also create multiple profiles for one machine and easily switch between different configs to try
+something new!
 
 ## Plan
 

@@ -44,16 +44,9 @@ func (p *Profile) LoadMap() *Profile {
         }
 
         fileName := strings.Trim(parts[0], " ")
-        toPath   := strings.Trim(parts[1], " ")
-        fromPath := filepath.Join(p.Location, fileName)
-        
-        // Determine if directory or file
-        file, err := os.Stat(fromPath)
-        if err != nil {
-            log.Fatal(err)
-        }
-
-        dots = append(dots, NewDot(fromPath, toPath, file.Mode().IsDir()))
+        destPath   := strings.Trim(parts[1], " ")
+        sourcePath := filepath.Join(p.Location, fileName)
+        dots = append(dots, NewDot(sourcePath, destPath))
     }
 
     if err := scanner.Err(); err != nil {
@@ -138,7 +131,6 @@ func (p *Profile) Deploy() error {
  * Preserves file permissions 
  */
 func copyFile(source string, dest string) error {
-    
     // Make dirs if not exist
     dirpath := filepath.Dir(source)
     if err := os.MkdirAll(dirpath, os.ModePerm); err != nil {
@@ -167,7 +159,7 @@ func copyFile(source string, dest string) error {
 }
 
 /*
- * Copy full directory tree at 'from' and place it at 'to'
+ * Copy full directory tree from source to dest
  */
 func copyDir(source string, dest string) error {
     stat, err := os.Stat(source)
@@ -198,7 +190,7 @@ func copyDir(source string, dest string) error {
             }
         } else {
             // Copy the file
-            err = copyFile(sourcePath, sourcePath)
+            err = copyFile(sourcePath, destPath)
             if err != nil {
                 return err
             }

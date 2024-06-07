@@ -13,8 +13,8 @@ type Dot struct {
     IsDir       bool
 }
 
-func NewDot(path string, deployPath string, isDir bool) *Dot {
-    dot := Dot{path, deployPath, isDir}
+func NewDot(path string, deployPath string) *Dot {
+    dot := Dot{path, deployPath, false}
 
     // Expand ~ to full path
     if deployPath[0] == '~' {
@@ -24,6 +24,20 @@ func NewDot(path string, deployPath string, isDir bool) *Dot {
         }
         newDeployPath := filepath.Join(base, deployPath[2:])
         dot.DeployPath = newDeployPath
+    }
+
+    // Determiner if dot is a directory
+    if file, err := os.Stat(dot.Path); err != nil {
+        // Try dest instead
+        if file, err := os.Stat(dot.DeployPath); err != nil {
+            // Both source and dest don't exist
+            log.Printf("Src: %s, Dest: %s", dot.Path, dot.DeployPath)
+            log.Fatalf("Source & Dest paths don't exist: %s ", err.Error())
+        } else {
+            dot.IsDir = file.Mode().IsDir()
+        }
+    } else {
+        dot.IsDir = file.Mode().IsDir()
     }
 
     return &dot
