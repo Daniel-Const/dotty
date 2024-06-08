@@ -21,7 +21,7 @@ var printCommand = &cobra.Command {
         p := core.NewProfile(pName)
         p.Load()
         for i := range p.Dots {
-            fmt.Printf("File: %s, Destination: %s\n", p.Dots[i].Path, p.Dots[i].DeployPath)
+            fmt.Printf("File: %s, Destination: %s\n", p.Dots[i].SrcPath, p.Dots[i].DestPath)
         }
         return nil
   },

@@ -1,9 +1,11 @@
 package cmd
 
 import (
-    "github.com/spf13/cobra"
+	"log"
 
-    "github.com/Daniel-Const/dotty/core"
+	"github.com/spf13/cobra"
+
+	"github.com/Daniel-Const/dotty/core"
 )
 
 func init() {
@@ -16,7 +18,10 @@ var LoadCmd = &cobra.Command {
     Long:   "Copies the dotfiles / dotfile directories from a map file into a profile",
     Args:   cobra.ExactArgs(1),
     RunE:   func(cmd *cobra.Command, args []string) error {
-        p := core.NewProfile(args[0]).LoadMap()
+        p, err := core.NewProfile(args[0]).LoadMap()
+        if err != nil {
+            log.Fatal(err)
+        }
         return p.Load()
     },
 }

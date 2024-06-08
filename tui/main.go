@@ -1,54 +1,75 @@
 package tui
 
 import (
-	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+const (
+    selectProfile int = iota
+    selectCommand
+)
 
 
 
 // Main bubbletea model for the app
 type Model struct {
-    commands []Command
-    cursor   int
-    running  int
+    profile  ProfileModel
+    commands CommandsModel
+    state    int
 }
 
 func NewModel(commands []Command) Model {
-    m := Model{commands, 0, -1} 
-    return m
+    return Model{
+        profile:  NewProfileModel(),
+        commands: NewCommandsModel(commands),
+        state:    selectProfile,
+    } 
 }
 
 func (m Model) Init() tea.Cmd {
-    return nil
+    var cmds []tea.Cmd
+    cmds = append(cmds, m.profile.Init())
+    cmds = append(cmds, m.commands.Init())
+    return tea.Batch(cmds...)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
-    // Key press
     case tea.KeyMsg:
         switch msg.String() {
         case "ctrl+c", "q":
             return m, tea.Quit
-        
-        case "up", "k":
-            if m.cursor > 0 {
-                m.cursor--
-            }
-        case "down", "j":
-            if m.cursor < len(m.commands)-1 {
-                m.cursor++
-            }
-        case "enter", "":
-            // TODO: Implement actually run the command
-            m.running = m.cursor
-            return m, profileCmd(m.cursor)
         }
+    case submitProfileMsg:
+        m.commands.Profile = msg
+        m.state++
     }
-    return m, nil
+
+    cmd := m.updateBubbles(msg)
+
+    return m, cmd
+}
+
+func (m *Model) updateBubbles(msg tea.Msg) tea.Cmd {
+    var cmds []tea.Cmd
+    switch m.state {
+    case selectProfile:
+        model, cmd := m.profile.Update(msg)
+        if p, ok := model.(ProfileModel); ok {
+           m.profile = p
+        }
+        cmds = append(cmds, cmd)
+    case selectCommand:
+        model, cmd := m.commands.Update(msg)
+        if c, ok := model.(CommandsModel); ok {
+            m.commands = c
+        } 
+        cmds = append(cmds, cmd)
+    }
+
+    return tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
@@ -57,20 +78,12 @@ func (m Model) View() string {
     s.WriteString(title.Render("Dotty"))
     s.WriteRune('\n')
 
-    // Select command
-    for i := range m.commands {
-        if i == m.cursor {
-            s.WriteString(selectHighlight.Render("> "+m.commands[i].Name))
-        } else {
-            s.WriteString(selectDefault.Render("> "+m.commands[i].Name))
-        }
-        s.WriteRune('\n')
+    switch m.state {
+    case selectProfile:
+        s.WriteString(m.profile.View())
+    case selectCommand:
+        s.WriteString(m.commands.View())
     }
 
-    // Command is running...
-    if m.running >= 0 {
-        s.WriteString(fmt.Sprintf("Running: %s...", m.commands[m.running].Name))
-    }
-
-    return s.String() 
+    return s.String()
 }

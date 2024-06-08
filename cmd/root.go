@@ -25,8 +25,8 @@ var (
 
             p := tea.NewProgram(
                 tui.NewModel([]tui.Command{
-                    tui.NewCommand("Deploy", DeployCmd.Short),
-                    tui.NewCommand("Load"  , LoadCmd.Short),
+                    tui.Command{Name: "Deploy", Desc: DeployCmd.Short},
+                    tui.Command{Name: "Load",   Desc: LoadCmd.Short},
                 }),
             )
             if _, err := p.Run(); err != nil {

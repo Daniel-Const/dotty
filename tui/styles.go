@@ -12,4 +12,5 @@ var (
 
     selectHighlight = lipgloss.NewStyle().Foreground(lipgloss.Color("#e83193"))
     selectDefault   = lipgloss.NewStyle()
+    errStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#e82d2a"))
 )
