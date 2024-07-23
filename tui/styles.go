@@ -2,6 +2,7 @@ package tui
 
 import "github.com/charmbracelet/lipgloss"
 
+// Text
 var (
     
     title           = lipgloss.NewStyle().
@@ -13,4 +14,10 @@ var (
     selectHighlight = lipgloss.NewStyle().Foreground(lipgloss.Color("#e83193"))
     selectDefault   = lipgloss.NewStyle()
     errStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#e82d2a"))
+)
+
+// Containers
+var (
+    rootContainer = lipgloss.NewStyle().
+                        BorderStyle(lipgloss.NormalBorder())
 )

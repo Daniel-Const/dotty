@@ -26,3 +26,10 @@
     etc...
 
 
+## Ideas
+
+- Auto search for dotty.map files for loading a profile
+- When profile is loaded show the maps
+    abc => ~/dotfiles/abc
+- When running cmd change styles on the map to indicate the process
+

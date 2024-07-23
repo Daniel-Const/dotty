@@ -1,10 +1,13 @@
 package tui
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 
 	"github.com/Daniel-Const/dotty/core"
 )
@@ -33,9 +36,16 @@ func NewProfileModel() ProfileModel {
     ti.Placeholder = "Profile path"
     ti.Focus()
     ti.CharLimit = 200
-    ti.Width = 20
-    // TODO: Default profile dir from config?
-    ti.SetValue("profiles/daniel-pc")
+    ti.Width = 60
+
+    // TODO: Improve profile loading (search for map files?)
+    defaultPath := ""
+    home, err := os.UserHomeDir()
+    if err == nil {
+        defaultPath = filepath.Join(home, "/dotfiles" + "/arch-desktop") // TODO: + arch-desktop for easy testing (remove)
+    }
+
+    ti.SetValue(defaultPath)
     return ProfileModel{ti, ""}
 }
 
@@ -62,10 +72,11 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ProfileModel) View() string {
     var s strings.Builder
-    s.WriteString("Enter a profile")
-    s.WriteString("\n\n")
+   
+    s.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("63")).Render("Profile path: "))
     s.WriteString(m.path.View())
-    s.WriteString("\n")
+    s.WriteString("\n\n")
     s.WriteString(errStyle.Render(m.errMsg))
+
     return s.String()
 }

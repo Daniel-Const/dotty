@@ -3,6 +3,7 @@ package core
 import (
 	"bufio"
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,8 +38,12 @@ func (p *Profile) LoadMap() (*Profile, error) {
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         line := scanner.Text()
+        if line == "" {
+            continue
+        }
         parts := strings.Split(line, ":")
         if len(parts) < 2 {
+           log.Println(line)
             return p, errors.New("Err: Map file incorrectly formatted")
         }
 

@@ -28,6 +28,7 @@ var (
                     tui.Command{Name: "Deploy", Desc: DeployCmd.Short},
                     tui.Command{Name: "Load",   Desc: LoadCmd.Short},
                 }),
+                tea.WithAltScreen(),
             )
             if _, err := p.Run(); err != nil {
                 fmt.Printf("Failed to run tea program :( %v", err)

@@ -85,5 +85,5 @@ func (m Model) View() string {
         s.WriteString(m.commands.View())
     }
 
-    return s.String()
+    return rootContainer.Render(s.String())
 }
