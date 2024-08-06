@@ -5,7 +5,7 @@ import "github.com/charmbracelet/lipgloss"
 // Text
 var (
     
-    title           = lipgloss.NewStyle().
+    titleStyle      = lipgloss.NewStyle().
                         Foreground(lipgloss.Color("#5235f2")).
                         PaddingBottom(1).
                         PaddingTop(1).

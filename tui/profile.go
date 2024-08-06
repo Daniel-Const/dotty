@@ -12,22 +12,21 @@ import (
 	"github.com/Daniel-Const/dotty/core"
 )
 
-type submitProfileMsg *core.Profile
+type submitProfileMsg struct {}
 type pathErrMsg error
-func submitCmd(path string) tea.Cmd {
+func submitCmd(err error) tea.Cmd {
     return func() tea.Msg {
-        // Load profile
-        p := core.NewProfile(path)
-        if _, err := p.LoadMap(); err != nil {
+        if err != nil {
             return pathErrMsg(err)
         }
-        return submitProfileMsg(p)
+        return submitProfileMsg{}
     }
 }
 
 type ProfileModel struct {
     path   textinput.Model
     errMsg string
+    Profile *core.Profile
 }
 
 func NewProfileModel() ProfileModel {
@@ -46,7 +45,23 @@ func NewProfileModel() ProfileModel {
     }
 
     ti.SetValue(defaultPath)
-    return ProfileModel{ti, ""}
+    return ProfileModel{ti, "", nil}
+}
+
+func (m ProfileModel) ViewMap() string {
+    s := strings.Builder{}
+    for _, dot := range m.GetDots() {
+        src := strings.ReplaceAll(dot.SrcPath, m.Profile.Location+"/", "")
+        s.WriteString(src + " => " + dot.DestPath + "\n")
+    }
+    return s.String()
+}
+
+func (m ProfileModel) GetDots() []*core.Dot {
+    if m.Profile != nil {
+        return m.Profile.Dots
+    }
+    return nil
 }
 
 func (m ProfileModel) Init() tea.Cmd {
@@ -59,7 +74,13 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     case tea.KeyMsg:
         switch msg.String() {
         case "enter":
-            return m, submitCmd(m.path.Value())
+            // Load new profile from the path
+            p := core.NewProfile(m.path.Value())
+            if _, err := p.LoadMap(); err != nil {
+                return m, submitCmd(err)
+            }
+            m.Profile = p 
+            return m, submitCmd(nil)
         }
     case pathErrMsg:
         m.errMsg = msg.Error()

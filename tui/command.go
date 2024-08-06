@@ -6,7 +6,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/Daniel-Const/dotty/core"
 )
 
 const (
@@ -18,21 +17,6 @@ type finishedCmd struct {
     msg string
 }
 
-func runCmd(p *core.Profile, cmd int) tea.Cmd {
-    return func() tea.Msg {
-        cmdStr := ""
-        switch cmd {
-        case deployCmd:
-            cmdStr = "Deploy"
-            p.Deploy()
-        case loadCmd:
-            cmdStr = "Load"
-            p.Load()
-        }
-
-        return finishedCmd{cmdStr}
-    } 
-}
 
 type Command struct {
     Name    string
@@ -45,7 +29,6 @@ type CommandsModel struct {
     running  int
     runMsg   string 
     cmds     []Command
-    Profile *core.Profile 
 }
 
 func NewCommandsModel(cmds []Command) CommandsModel {
@@ -54,7 +37,6 @@ func NewCommandsModel(cmds []Command) CommandsModel {
         running: -1,
         runMsg: "",
         cmds:    cmds,
-        Profile: nil,
     }
 }
 
@@ -76,8 +58,9 @@ func (m CommandsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             }
         case "enter", "":
             m.running = m.cursor
-            return m, runCmd(m.Profile, m.cursor)
+            return m, nil
         }
+
     case finishedCmd:
         m.running = -1
         m.runMsg = "Finished running " + msg.msg
@@ -89,7 +72,6 @@ func (m CommandsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m CommandsModel) View() string {
     var s strings.Builder
-    s.WriteString(fmt.Sprintf("Profile: %s", m.Profile.Name))
     s.WriteString("\n\n")
     for i := range m.cmds {
         if i == m.cursor {

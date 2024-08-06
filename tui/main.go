@@ -11,8 +11,6 @@ const (
     selectCommand
 )
 
-
-
 // Main bubbletea model for the app
 type Model struct {
     profile  ProfileModel
@@ -23,7 +21,6 @@ type Model struct {
 func NewModel(commands []Command) Model {
     return Model{
         profile:  NewProfileModel(),
-        commands: NewCommandsModel(commands),
         state:    selectProfile,
     } 
 }
@@ -31,7 +28,6 @@ func NewModel(commands []Command) Model {
 func (m Model) Init() tea.Cmd {
     var cmds []tea.Cmd
     cmds = append(cmds, m.profile.Init())
-    cmds = append(cmds, m.commands.Init())
     return tea.Batch(cmds...)
 }
 
@@ -43,12 +39,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             return m, tea.Quit
         }
     case submitProfileMsg:
-        m.commands.Profile = msg
         m.state++
     }
 
     cmd := m.updateBubbles(msg)
-
     return m, cmd
 }
 
@@ -73,17 +67,21 @@ func (m *Model) updateBubbles(msg tea.Msg) tea.Cmd {
 }
 
 func (m Model) View() string {
-    var s strings.Builder
+    var s, title strings.Builder
 
-    s.WriteString(title.Render("Dotty"))
-    s.WriteRune('\n')
+    title.WriteString(titleStyle.Render("Dotty") + "\n")
 
     switch m.state {
     case selectProfile:
         s.WriteString(m.profile.View())
-    case selectCommand:
-        s.WriteString(m.commands.View())
+        return rootContainer.Render(title.String() + s.String())
     }
 
-    return rootContainer.Render(s.String())
+    title.WriteString("Profile: " + m.profile.Profile.Name)
+    s.WriteString(m.profile.ViewMap())
+
+    // TODO: Render buttons (deploy, load, etc...)
+    // Implement command cursor for highlight + reverse arrows in ViewMap
+
+    return rootContainer.Render(title.String() + "\n\n" + s.String())
 }
