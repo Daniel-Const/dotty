@@ -48,14 +48,7 @@ func NewProfileModel() ProfileModel {
     return ProfileModel{ti, "", nil}
 }
 
-func (m ProfileModel) ViewMap() string {
-    s := strings.Builder{}
-    for _, dot := range m.GetDots() {
-        src := strings.ReplaceAll(dot.SrcPath, m.Profile.Location+"/", "")
-        s.WriteString(src + " => " + dot.DestPath + "\n")
-    }
-    return s.String()
-}
+
 
 func (m ProfileModel) GetDots() []*core.Dot {
     if m.Profile != nil {
@@ -91,7 +84,16 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     return m, cmd
 }
 
-func (m ProfileModel) View() string {
+func (m ProfileModel) ShowView() string {
+    s := strings.Builder{}
+    for _, dot := range m.GetDots() {
+        src := strings.ReplaceAll(dot.SrcPath, m.Profile.Location+"/", "")
+        s.WriteString(src + " => " + dot.DestPath + "\n")
+    }
+    return s.String()
+}
+
+func (m ProfileModel) SelectView() string {
     var s strings.Builder
    
     s.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("63")).Render("Profile path: "))
@@ -100,4 +102,8 @@ func (m ProfileModel) View() string {
     s.WriteString(errStyle.Render(m.errMsg))
 
     return s.String()
+}
+
+func (m ProfileModel) View() string {
+    return ""
 }

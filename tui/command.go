@@ -2,11 +2,17 @@ package tui
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-
 )
+
+/*
+Load <--
+Deploy -->
+Edit Map
+*/
 
 const (
     deployCmd int = iota
@@ -16,7 +22,6 @@ const (
 type finishedCmd struct {
     msg string
 }
-
 
 type Command struct {
     Name    string
@@ -32,6 +37,11 @@ type CommandsModel struct {
 }
 
 func NewCommandsModel(cmds []Command) CommandsModel {
+    if len(cmds) == 0 {
+        log.Printf("Error creating CommandsModel: No commands given")
+        // TODO: Handling errors in constructor?
+    }
+
     return CommandsModel{
         cursor:  0,
         running: -1,
@@ -74,17 +84,18 @@ func (m CommandsModel) View() string {
     var s strings.Builder
     s.WriteString("\n\n")
     for i := range m.cmds {
+        var optionStyle = optionDefaultStyle
         if i == m.cursor {
-            s.WriteString(selectHighlight.Render("> "+m.cmds[i].Name))
-        } else {
-            s.WriteString(selectDefault.Render("> "+m.cmds[i].Name))
+            optionStyle = optionHighlightStyle
         }
+        s.WriteString(optionStyle.Render(m.cmds[i].Name))
         s.WriteString("\n")
     }
 
     s.WriteString("\n")
 
     if m.running >= 0 {
+        log.Printf("m.running: %d", m.running)
         s.WriteString(fmt.Sprintf("Running: %s...", m.cmds[m.running].Name))
     }
 

@@ -11,13 +11,14 @@ var (
                         PaddingTop(1).
                         PaddingLeft(1)
 
-    selectHighlight = lipgloss.NewStyle().Foreground(lipgloss.Color("#e83193"))
-    selectDefault   = lipgloss.NewStyle()
-    errStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#e82d2a"))
+    errStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#e82d2a"))
+
+    optionHighlightStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#e83193")).Background(lipgloss.Color("#ffffff"))
+    optionDefaultStyle   = lipgloss.NewStyle()
 )
 
 // Containers
 var (
-    rootContainer = lipgloss.NewStyle().
-                        BorderStyle(lipgloss.NormalBorder())
+    rootContainer = lipgloss.NewStyle().BorderStyle(lipgloss.NormalBorder())
+    cmdColContainer = lipgloss.NewStyle().PaddingRight(2)
 )

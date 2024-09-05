@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 const (
@@ -21,6 +22,7 @@ type Model struct {
 func NewModel(commands []Command) Model {
     return Model{
         profile:  NewProfileModel(),
+        commands: NewCommandsModel(commands),
         state:    selectProfile,
     } 
 }
@@ -69,19 +71,23 @@ func (m *Model) updateBubbles(msg tea.Msg) tea.Cmd {
 func (m Model) View() string {
     var s, title strings.Builder
 
-    title.WriteString(titleStyle.Render("Dotty") + "\n")
-
     switch m.state {
+    // Select profile view
     case selectProfile:
-        s.WriteString(m.profile.View())
-        return rootContainer.Render(title.String() + s.String())
+        title.WriteString(titleStyle.Render("Dotty · Select a profile"))
+        s.WriteString(m.profile.SelectView())
+
+    // Main view
+    default:
+        title.WriteString(titleStyle.Render("Dotty · Profile: " + m.profile.Profile.Name))
+        s.WriteString(
+            lipgloss.JoinHorizontal(
+                lipgloss.Bottom,
+                cmdColContainer.Render(m.commands.View()),
+                m.profile.ShowView(),
+            ),
+        )
     }
-
-    title.WriteString("Profile: " + m.profile.Profile.Name)
-    s.WriteString(m.profile.ViewMap())
-
-    // TODO: Render buttons (deploy, load, etc...)
-    // Implement command cursor for highlight + reverse arrows in ViewMap
-
-    return rootContainer.Render(title.String() + "\n\n" + s.String())
+    
+    return rootContainer.Render(title.String() + "\n" + s.String())
 }
