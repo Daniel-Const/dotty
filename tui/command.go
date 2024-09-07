@@ -58,11 +58,11 @@ func (m CommandsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
     case tea.KeyMsg:
         switch msg.String() {
-        case "up", "k":
+        case "left", "h":
             if m.cursor > 0 {
                 m.cursor--
             }
-        case "down", "j":
+        case "right", "l":
             if m.cursor < len(m.cmds)-1 {
                 m.cursor++
             }
@@ -88,8 +88,8 @@ func (m CommandsModel) View() string {
         if i == m.cursor {
             optionStyle = optionHighlightStyle
         }
-        s.WriteString(optionStyle.Render(m.cmds[i].Name))
-        s.WriteString("\n")
+        s.WriteString(optionStyle.Render(m.cmds[i].Name) + " ")
+        // s.WriteString("\n")
     }
 
     s.WriteString("\n")

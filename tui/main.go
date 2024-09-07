@@ -81,10 +81,10 @@ func (m Model) View() string {
     default:
         title.WriteString(titleStyle.Render("Dotty · Profile: " + m.profile.Profile.Name))
         s.WriteString(
-            lipgloss.JoinHorizontal(
-                lipgloss.Bottom,
+            lipgloss.JoinVertical(
+                lipgloss.Top,
                 cmdColContainer.Render(m.commands.View()),
-                m.profile.ShowView(),
+                m.profile.ShowView(m.commands.cursor),
             ),
         )
     }

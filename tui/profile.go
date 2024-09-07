@@ -84,13 +84,28 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     return m, cmd
 }
 
-func (m ProfileModel) ShowView() string {
-    s := strings.Builder{}
+func (m ProfileModel) ShowView(direction int) string {
+    srcCol := strings.Builder{}
+    dirCol := strings.Builder{}
+    destCol := strings.Builder{}
+    dirChar := "=>"
+    if direction == 1 {
+       dirChar = "<="
+    }
     for _, dot := range m.GetDots() {
         src := strings.ReplaceAll(dot.SrcPath, m.Profile.Location+"/", "")
-        s.WriteString(src + " => " + dot.DestPath + "\n")
+        srcCol.WriteString(src + "\n")
+        dirCol.WriteString("  " + dirChar + "  \n")
+        destCol.WriteString(dot.DestPath + "\n")
+        // s.WriteString(src + " => " + dot.DestPath + "\n")
     }
-    return s.String()
+
+    return lipgloss.JoinHorizontal(
+        lipgloss.Right,
+        srcCol.String(),
+        dirCol.String(),
+        destCol.String(),
+    )
 }
 
 func (m ProfileModel) SelectView() string {
