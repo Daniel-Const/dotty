@@ -15,94 +15,109 @@ Edit Map
 */
 
 const (
-    deployCmd int = iota
-    loadCmd
+	deployCmd int = iota
+	loadCmd
 )
 
+type triggerCmdMsg struct {
+	cmd int
+}
+
+func triggerCmd(cmd int) tea.Cmd {
+
+	return func() tea.Msg {
+		return triggerCmdMsg{cmd}
+	}
+}
+
 type finishedCmd struct {
-    msg string
+	msg string
 }
 
 type Command struct {
-    Name    string
-    Desc    string
+	Name string
+	Desc string
 }
 
 // Command UI Model
 type CommandsModel struct {
-    cursor   int
-    running  int
-    runMsg   string 
-    cmds     []Command
+	cursor  int
+	running int
+	runMsg  string
+	cmds    []Command
 }
 
 func NewCommandsModel(cmds []Command) CommandsModel {
-    if len(cmds) == 0 {
-        log.Printf("Error creating CommandsModel: No commands given")
-        // TODO: Handling errors in constructor?
-    }
+	if len(cmds) == 0 {
+		log.Printf("Error creating CommandsModel: No commands given")
+		// TODO: Handling errors in constructor?
+	}
 
-    return CommandsModel{
-        cursor:  0,
-        running: -1,
-        runMsg: "",
-        cmds:    cmds,
-    }
+	return CommandsModel{
+		cursor:  0,
+		running: -1,
+		runMsg:  "",
+		cmds:    cmds,
+	}
 }
 
 func (m CommandsModel) Init() tea.Cmd {
-    return nil
+	return nil
 }
 
 func (m CommandsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-    switch msg := msg.(type) {
-    case tea.KeyMsg:
-        switch msg.String() {
-        case "left", "h":
-            if m.cursor > 0 {
-                m.cursor--
-            }
-        case "right", "l":
-            if m.cursor < len(m.cmds)-1 {
-                m.cursor++
-            }
-        case "enter", "":
-            m.running = m.cursor
-            return m, nil
-        }
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "left", "h":
+			if m.cursor > 0 {
+				m.cursor--
+			}
+		case "right", "l":
+			if m.cursor < len(m.cmds)-1 {
+				m.cursor++
+			}
+		case "enter", "":
+			if m.running == -1 {
+				m.running = m.cursor
+				return m, triggerCmd(m.running)
+			}
+			return m, nil
+		}
 
-    case finishedCmd:
-        m.running = -1
-        m.runMsg = "Finished running " + msg.msg
-    }
+	case finishedCmd:
+		m.running = -1
+		m.runMsg = "Finished running " + msg.msg
+	}
 
+	return m, nil
+}
 
-    return m, nil    
+func (m CommandsModel) CommandSelectView() string {
+	var s strings.Builder
+	s.WriteString("\n\n")
+	for i := range m.cmds {
+		var optionStyle = optionDefaultStyle
+		if i == m.cursor {
+			optionStyle = optionHighlightStyle
+		}
+		s.WriteString(optionStyle.Render(m.cmds[i].Name) + " ")
+	}
+
+	return s.String()
+
 }
 
 func (m CommandsModel) View() string {
-    var s strings.Builder
-    s.WriteString("\n\n")
-    for i := range m.cmds {
-        var optionStyle = optionDefaultStyle
-        if i == m.cursor {
-            optionStyle = optionHighlightStyle
-        }
-        s.WriteString(optionStyle.Render(m.cmds[i].Name) + " ")
-        // s.WriteString("\n")
-    }
+	var s strings.Builder
+	if m.running >= 0 {
+		log.Printf("m.running: %d", m.running)
+		s.WriteString(fmt.Sprintf("Running: %s...", m.cmds[m.running].Name))
+	}
 
-    s.WriteString("\n")
+	if m.runMsg != "" {
+		s.WriteString(m.runMsg)
+	}
 
-    if m.running >= 0 {
-        log.Printf("m.running: %d", m.running)
-        s.WriteString(fmt.Sprintf("Running: %s...", m.cmds[m.running].Name))
-    }
-
-    if m.runMsg != "" {
-        s.WriteString(m.runMsg)
-    }
-
-    return s.String()
+	return s.String()
 }
-

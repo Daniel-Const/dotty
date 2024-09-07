@@ -82,7 +82,7 @@ func (d *Dot) Load() error {
 func (d *Dot) Backup() error {
     // TODO: Get backup path dir from viper config?
     backupName := time.Now().Format("2006-01-02_15:04:05.00")
-    backupRoot := filepath.Join("~/dottytest/backup", backupName)
+    backupRoot := filepath.Join("backup", backupName)
     if stat, err := os.Stat(d.DestPath); err == nil {
         backupPath := filepath.Join(backupRoot, filepath.Base(d.DestPath))
         log.Printf("Creating backup for %s", d.DestPath)

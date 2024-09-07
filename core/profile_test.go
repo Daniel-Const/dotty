@@ -5,8 +5,8 @@ import (
 )
 
 
-func testNewProfile(t *testing.T) {
-    p := NewProfile("potato")
+func TestNewProfile(t *testing.T) {
+    p := NewProfile("./profiles/potato")
 
     // Should set Location correctly
     if p.Location != "./profiles/potato" {

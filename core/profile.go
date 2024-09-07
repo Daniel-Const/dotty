@@ -79,10 +79,6 @@ func (p *Profile) Load() error {
  */
 func (p *Profile) Deploy() error {
     for i := range p.Dots {
-        if err := p.Dots[i].Backup(); err != nil {
-            return err 
-        }
-
         if err := p.Dots[i].Deploy(); err != nil {
             return err 
         }
