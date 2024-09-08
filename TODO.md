@@ -1,5 +1,10 @@
 # TODO
 
+## Notes
+
+- Adding .config to profile copies **Everything**
+- Find a better way to copy specific .config/ directories?
+
 ## Features
 
 - Finish implementing MVP bubbletea TUI
