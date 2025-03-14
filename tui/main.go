@@ -114,7 +114,7 @@ func (m Model) View() string {
 		s.WriteString(
 			lipgloss.JoinVertical(
 				lipgloss.Top,
-				cmdColContainer.Render(m.commands.CommandSelectView()) + "\n",
+				cmdColContainer.Render(m.commands.CommandSelectView())+"\n",
 				m.profile.ShowView(m.commands.cursor),
 			),
 		)

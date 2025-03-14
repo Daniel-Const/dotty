@@ -6,8 +6,6 @@ package main
 
 import "github.com/Daniel-Const/dotty/cmd"
 
-
 func main() {
-   cmd.Execute() 
+	cmd.Execute()
 }
-
