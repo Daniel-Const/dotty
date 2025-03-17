@@ -64,6 +64,7 @@ func (d *Dot) Deploy() error {
 // Copy DestPath files to SrcPath
 func (d *Dot) Load() error {
 	var err error
+
 	if d.IsDir {
 		err = copyDir(d.DestPath, d.SrcPath)
 	} else {
@@ -74,7 +75,6 @@ func (d *Dot) Load() error {
 		return err
 	}
 
-	log.Printf("Loading dotfile into profile: %s", d.DestPath)
 	return nil
 }
 

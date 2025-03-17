@@ -44,6 +44,13 @@ func (p *Profile) LoadMap() (*Profile, error) {
 		if line == "" {
 			continue
 		}
+
+		// Skip if line is a comment
+		checkIsComment := strings.Replace(line, " ", "", -1)
+		if checkIsComment[0] == '#' {
+			continue
+		}
+
 		parts := strings.Split(line, ":")
 		if len(parts) < 2 {
 			log.Println(line)
@@ -71,7 +78,9 @@ func (p *Profile) Load() error {
 	for i := range p.Dots {
 		err := p.Dots[i].Load()
 		if err != nil {
-			return err
+			fmt.Println(err)
+		} else {
+			fmt.Println("Loaded ", p.Dots[i].DestPath, " Into ", p.Dots[i].SrcPath)
 		}
 	}
 	return nil
@@ -83,7 +92,9 @@ func (p *Profile) Load() error {
 func (p *Profile) Deploy() error {
 	for i := range p.Dots {
 		if err := p.Dots[i].Deploy(); err != nil {
-			return err
+			fmt.Println(err)
+		} else {
+			fmt.Println("Deployed ", p.Name, " To ", p.Location)
 		}
 	}
 
