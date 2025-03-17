@@ -143,3 +143,37 @@ func (p *Profile) Print() {
 	s.WriteString(t.Render())
 	fmt.Print(s.String())
 }
+
+func ReadProfiles() ([]string, error) {
+	// TODO: Fix hard coded home path
+	file, err := os.Open("/home/daniel/.config/.dottyprofiles")
+	if err != nil {
+		return []string{}, err
+	}
+
+	paths := []string{}
+	defer file.Close()
+
+	// Scan map and create dots line by line
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			continue
+		}
+
+		// Skip if line is a comment
+		checkIsComment := strings.Replace(line, " ", "", -1)
+		if checkIsComment[0] == '#' {
+			continue
+		}
+
+		paths = append(paths, strings.Trim(line, " "))
+	}
+
+	if err := scanner.Err(); err != nil {
+		return []string{}, err
+	}
+
+	return paths, nil
+}

@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,9 +26,12 @@ func submitCmd(err error) tea.Cmd {
 }
 
 type ProfileModel struct {
-	path    textinput.Model
-	errMsg  string
-	Profile *core.Profile
+	path      textinput.Model
+	errMsg    string
+	Profile   *core.Profile
+	cursor    int
+	maxCursor int
+	profiles  []string
 }
 
 func NewProfileModel() ProfileModel {
@@ -42,11 +46,16 @@ func NewProfileModel() ProfileModel {
 	defaultPath := ""
 	home, err := os.UserHomeDir()
 	if err == nil {
-		defaultPath = filepath.Join(home, "/dotfiles"+"/arch-desktop") // TODO: + arch-desktop for easy testing (remove)
+		defaultPath = filepath.Join(home, "/")
 	}
 
 	ti.SetValue(defaultPath)
-	return ProfileModel{ti, "", nil}
+	profiles, err := core.ReadProfiles()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return ProfileModel{ti, "", nil, 0, len(profiles), profiles}
 }
 
 func (m ProfileModel) GetDots() []*core.Dot {
@@ -66,14 +75,30 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
+			// TODO: Save new profile to .config/.dottyprofiles
 			// Load new profile from the path
-			p := core.NewProfile(m.path.Value())
+			path := ""
+			if m.CursorAtEnd() {
+				path = m.path.Value()
+			} else {
+				path = m.profiles[m.cursor]
+			}
+			p := core.NewProfile(path)
 			if _, err := p.LoadMap(); err != nil {
 				return m, submitCmd(err)
 			}
 			m.Profile = p
 			return m, submitCmd(nil)
+		case "down":
+			if m.cursor < m.maxCursor {
+				m.cursor += 1
+			}
+		case "up":
+			if m.cursor > 0 {
+				m.cursor -= 1
+			}
 		}
+
 	case pathErrMsg:
 		m.errMsg = msg.Error()
 	}
@@ -81,6 +106,10 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.path, cmd = m.path.Update(msg)
 
 	return m, cmd
+}
+
+func (m ProfileModel) CursorAtEnd() bool {
+	return m.cursor >= m.maxCursor
 }
 
 func (m ProfileModel) ShowView(direction int) string {
@@ -110,8 +139,22 @@ func (m ProfileModel) ShowView(direction int) string {
 func (m ProfileModel) SelectView() string {
 	var s strings.Builder
 
+	s.WriteString("\n")
+
+	for i, p := range m.profiles {
+		if i == m.cursor {
+			s.WriteString(fmt.Sprintf("> %s\n", p))
+		} else {
+			s.WriteString(fmt.Sprintf("%s\n", p))
+		}
+	}
+
+	s.WriteString("\n")
+
 	s.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("63")).Render("Profile path: "))
-	s.WriteString(m.path.View())
+	if m.cursor >= m.maxCursor {
+		s.WriteString(m.path.View())
+	}
 	s.WriteString("\n\n")
 	s.WriteString(errStyle.Render(m.errMsg))
 
