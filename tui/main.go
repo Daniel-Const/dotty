@@ -72,7 +72,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case triggerCmdMsg:
 		log.Println("Run command message")
 		m.state = runningCommand
-		return m, runCmd(msg.cmd, m.profile.Profile)
+		cmd := runCmd(msg.cmd, m.profile.Profile)
+		m.state = selectCommand
+		return m, cmd
 	}
 
 	cmd := m.updateBubbles(msg)
@@ -100,18 +102,18 @@ func (m *Model) updateBubbles(msg tea.Msg) tea.Cmd {
 }
 
 func (m Model) View() string {
-	var s, title strings.Builder
+	var body, title strings.Builder
 
 	switch m.state {
 	// Select profile view
 	case selectProfile:
 		title.WriteString(titleStyle.Render("Dotty · Select a profile"))
-		s.WriteString(m.profile.SelectView())
+		body.WriteString(m.profile.SelectView())
 
 	// Main profile view
 	default:
 		title.WriteString(titleStyle.Render("Dotty · Profile: " + m.profile.Profile.Name))
-		s.WriteString(
+		body.WriteString(
 			lipgloss.JoinVertical(
 				lipgloss.Top,
 				cmdColContainer.Render(m.commands.CommandSelectView())+"\n",
@@ -120,5 +122,11 @@ func (m Model) View() string {
 		)
 	}
 
-	return rootContainer.Render(title.String(), "\n", s.String(), "\n", m.commands.View())
+	return rootContainer.Render(
+		title.String(),
+		"\n",
+		BodyContainer.Render(body.String()),
+		"\n",
+		m.commands.View(),
+	)
 }

@@ -57,10 +57,18 @@ func (p *Profile) LoadMap() (*Profile, error) {
 			return p, errors.New("err: Map file incorrectly formatted")
 		}
 
-		fileName := strings.Trim(parts[0], " ")
-		destPath := strings.Trim(parts[1], " ")
-		sourcePath := filepath.Join(p.Location, fileName)
-		dots = append(dots, NewDot(sourcePath, destPath))
+		srcPath, err := processPath(parts[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		destPath, err := processPath(parts[1])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		srcPath = filepath.Join(p.Location, srcPath)
+		dots = append(dots, NewDot(srcPath, destPath))
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -78,9 +86,7 @@ func (p *Profile) Load() error {
 	for i := range p.Dots {
 		err := p.Dots[i].Load()
 		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println("Loaded ", p.Dots[i].DestPath, " Into ", p.Dots[i].SrcPath)
+			log.Println(err)
 		}
 	}
 	return nil
@@ -92,9 +98,7 @@ func (p *Profile) Load() error {
 func (p *Profile) Deploy() error {
 	for i := range p.Dots {
 		if err := p.Dots[i].Deploy(); err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println("Deployed ", p.Name, " To ", p.Location)
+			log.Println(err)
 		}
 	}
 
@@ -102,8 +106,6 @@ func (p *Profile) Deploy() error {
 }
 
 func (p *Profile) Print() {
-	// var style = lipgloss.NewStyle()
-
 	var (
 		purple    = lipgloss.Color("99")
 		gray      = lipgloss.Color("245")
@@ -144,7 +146,7 @@ func (p *Profile) Print() {
 	fmt.Print(s.String())
 }
 
-func ReadProfiles() ([]string, error) {
+func ReadProfileList() ([]string, error) {
 	// TODO: Fix hard coded home path
 	file, err := os.Open("/home/daniel/.config/.dottyprofiles")
 	if err != nil {
@@ -168,7 +170,11 @@ func ReadProfiles() ([]string, error) {
 			continue
 		}
 
-		paths = append(paths, strings.Trim(line, " "))
+		p, err := processPath(line)
+		if err != nil {
+			log.Fatal(err)
+		}
+		paths = append(paths, p)
 	}
 
 	if err := scanner.Err(); err != nil {

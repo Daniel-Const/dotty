@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type CopyError struct {
@@ -88,4 +89,20 @@ func copyDir(src string, dest string) error {
 	}
 
 	return nil
+}
+
+func processPath(path string) (string, error) {
+	// Remove whitespace
+	p := strings.Trim(path, " ")
+	// Expand ~ to full path
+	if p[0] == '~' {
+		base, err := os.UserHomeDir()
+		if err != nil {
+			return path, err
+			// log.Fatal(err)
+		}
+		expandedPath := filepath.Join(base, p[2:])
+		return expandedPath, nil
+	}
+	return p, nil
 }

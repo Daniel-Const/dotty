@@ -25,8 +25,8 @@ var (
 
 			p := tea.NewProgram(
 				tui.NewModel([]tui.Command{
-					tui.Command{Name: "Deploy", Desc: DeployCmd.Short},
-					tui.Command{Name: "Load", Desc: LoadCmd.Short},
+					{Name: "Deploy", Desc: DeployCmd.Short},
+					{Name: "Load", Desc: LoadCmd.Short},
 				}),
 				tea.WithAltScreen(),
 			)

@@ -79,6 +79,7 @@ func (m CommandsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "enter", "":
 			if m.running == -1 {
+				m.runMsg = ""
 				m.running = m.cursor
 				return m, triggerCmd(m.running)
 			}
@@ -87,7 +88,7 @@ func (m CommandsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case finishedCmd:
 		m.running = -1
-		m.runMsg = "Finished running " + msg.msg
+		m.runMsg = "Finished running " + msg.msg + "\n"
 	}
 
 	return m, nil

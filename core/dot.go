@@ -17,16 +17,6 @@ type Dot struct {
 func NewDot(path string, deployPath string) *Dot {
 	dot := Dot{path, deployPath, false}
 
-	// Expand ~ to full path
-	if deployPath[0] == '~' {
-		base, err := os.UserHomeDir()
-		if err != nil {
-			log.Fatal(err)
-		}
-		newDeployPath := filepath.Join(base, deployPath[2:])
-		dot.DestPath = newDeployPath
-	}
-
 	// Determine if dot is a directory
 	if file, err := os.Stat(dot.SrcPath); err != nil {
 		// Try dest instead
@@ -44,14 +34,20 @@ func NewDot(path string, deployPath string) *Dot {
 	return &dot
 }
 
-// Copy SrcPath files to DestPath
-func (d *Dot) Deploy() error {
+func (d *Dot) copy(from string, to string) error {
 	var err error
 	if d.IsDir {
-		err = copyDir(d.SrcPath, d.DestPath)
+		err = copyDir(from, to)
 	} else {
-		err = copyFile(d.SrcPath, d.DestPath)
+		err = copyFile(from, to)
 	}
+
+	return err
+}
+
+// Copy SrcPath files to DestPath
+func (d *Dot) Deploy() error {
+	err := d.copy(d.SrcPath, d.DestPath)
 
 	if err != nil {
 		return err
@@ -63,13 +59,7 @@ func (d *Dot) Deploy() error {
 
 // Copy DestPath files to SrcPath
 func (d *Dot) Load() error {
-	var err error
-
-	if d.IsDir {
-		err = copyDir(d.DestPath, d.SrcPath)
-	} else {
-		err = copyFile(d.DestPath, d.SrcPath)
-	}
+	err := d.copy(d.DestPath, d.SrcPath)
 
 	if err != nil {
 		return err

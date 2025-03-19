@@ -10,10 +10,10 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(printCommand)
+	rootCmd.AddCommand(printCmd)
 }
 
-var printCommand = &cobra.Command{
+var printCmd = &cobra.Command{
 	Use:   "print",
 	Short: "Print a profiles dotfiles map",
 	Args:  cobra.ExactArgs(1),

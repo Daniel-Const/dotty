@@ -42,7 +42,6 @@ func NewProfileModel() ProfileModel {
 	ti.CharLimit = 200
 	ti.Width = 60
 
-	// TODO: Improve profile loading (search for map files?)
 	defaultPath := ""
 	home, err := os.UserHomeDir()
 	if err == nil {
@@ -50,7 +49,7 @@ func NewProfileModel() ProfileModel {
 	}
 
 	ti.SetValue(defaultPath)
-	profiles, err := core.ReadProfiles()
+	profiles, err := core.ReadProfileList()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -151,7 +150,7 @@ func (m ProfileModel) SelectView() string {
 
 	s.WriteString("\n")
 
-	s.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("63")).Render("Profile path: "))
+	s.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("63")).Render("New Profile: "))
 	if m.cursor >= m.maxCursor {
 		s.WriteString(m.path.View())
 	}

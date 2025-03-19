@@ -17,6 +17,7 @@ var (
 
 // Containers
 var (
-	rootContainer   = lipgloss.NewStyle().BorderStyle(lipgloss.NormalBorder())
+	rootContainer   = lipgloss.NewStyle() //.BorderStyle(lipgloss.NormalBorder())
+	BodyContainer   = lipgloss.NewStyle().PaddingLeft(2)
 	cmdColContainer = lipgloss.NewStyle().PaddingRight(2)
 )
