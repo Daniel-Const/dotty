@@ -2,8 +2,8 @@
 
 ## Notes
 
-- Adding .config to profile copies **Everything**
-- Find a better way to copy specific .config/ directories?
+- Cannot see error messages when running commands from the TUI
+- Find a way to get error / success status from dot operations and show them in the TUI
 
 ## Features
 
