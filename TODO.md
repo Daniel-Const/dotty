@@ -7,6 +7,7 @@
 
 ## Features
 
+- Add a little dot next to files that have changed!!!
 - Finish implementing MVP bubbletea TUI
 - Getting profile path for TUI: Enter path / Search / Config ?
 - Better backups handling

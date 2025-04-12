@@ -34,6 +34,9 @@ func NewDot(path string, deployPath string) *Dot {
 	return &dot
 }
 
+/*
+ * Copy a file or directory from one path to another
+ */
 func (d *Dot) copy(from string, to string) error {
 	var err error
 	if d.IsDir {
@@ -45,7 +48,9 @@ func (d *Dot) copy(from string, to string) error {
 	return err
 }
 
-// Copy SrcPath files to DestPath
+/*
+ * Copy SrcPath files to DestPath
+ */
 func (d *Dot) Deploy() error {
 	err := d.copy(d.SrcPath, d.DestPath)
 
@@ -57,7 +62,9 @@ func (d *Dot) Deploy() error {
 	return nil
 }
 
-// Copy DestPath files to SrcPath
+/*
+ * Copy DestPath files to SrcPath
+ */
 func (d *Dot) Load() error {
 	err := d.copy(d.DestPath, d.SrcPath)
 
@@ -68,7 +75,9 @@ func (d *Dot) Load() error {
 	return nil
 }
 
-// Backup DestPath files if they exist already
+/*
+ * Backup DestPath files if they exist already
+ */
 func (d *Dot) Backup() error {
 	// TODO: Get backup path dir from viper config?
 	backupName := time.Now().Format("2006-01-02_15:04:05.00")

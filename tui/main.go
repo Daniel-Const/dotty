@@ -40,9 +40,9 @@ type Model struct {
 	state    int
 }
 
-func NewModel(commands []Command) Model {
+func NewModel(commands []Command, config *core.DottyConfig) Model {
 	return Model{
-		profile:  NewProfileModel(),
+		profile:  NewProfileModel(config),
 		commands: NewCommandsModel(commands),
 		state:    selectProfile,
 	}

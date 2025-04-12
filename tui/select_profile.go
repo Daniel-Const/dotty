@@ -34,7 +34,7 @@ type ProfileModel struct {
 	profiles  []string
 }
 
-func NewProfileModel() ProfileModel {
+func NewProfileModel(config *core.DottyConfig) ProfileModel {
 	// Initialise path input model
 	ti := textinput.New()
 	ti.Placeholder = "Profile path"
@@ -49,11 +49,8 @@ func NewProfileModel() ProfileModel {
 	}
 
 	ti.SetValue(defaultPath)
-	profiles, err := core.ReadProfileList()
-	if err != nil {
-		fmt.Println(err)
-	}
 
+	profiles := config.Profiles
 	return ProfileModel{ti, "", nil, 0, len(profiles), profiles}
 }
 
