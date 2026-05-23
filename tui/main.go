@@ -1,43 +1,52 @@
 package tui
 
 import (
-	"log"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/Daniel-Const/dotty/core"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 const (
 	selectProfile int = iota
-	selectCommand     // change to profile
+	selectCommand
 	runningCommand
+	viewingResult
+	viewingDiff
 )
+
+type returnToMenuMsg struct{}
+
+func returnAfterDelay() tea.Cmd {
+	return tea.Tick(2*time.Second, func(time.Time) tea.Msg {
+		return returnToMenuMsg{}
+	})
+}
 
 func runCmd(cmd int, p *core.Profile) tea.Cmd {
 	return func() tea.Msg {
+		var count int
+		var name string
 		switch cmd {
 		case deployCmd:
-			p.Deploy()
+			count, _ = p.Deploy()
+			name = "Deployed"
 		case loadCmd:
-			p.Load()
+			count, _ = p.Load()
+			name = "Loaded"
 		}
-
-		// Sleep for user experience
-		time.Sleep(2 * time.Second)
-
-		return finishedCmd{}
+		return finishedCmd{msg: fmt.Sprintf("✓ %s %d files", name, count)}
 	}
-
 }
 
-// Main bubbletea model for the app
 type Model struct {
-	profile  ProfileModel
-	commands CommandsModel
-	state    int
+	profile   ProfileModel
+	commands  CommandsModel
+	diff      DiffModel
+	state     int
+	resultMsg string
 }
 
 func NewModel(commands []Command, config *core.DottyConfig) Model {
@@ -49,36 +58,58 @@ func NewModel(commands []Command, config *core.DottyConfig) Model {
 }
 
 func (m Model) Init() tea.Cmd {
-	var cmds []tea.Cmd
-	cmds = append(cmds, m.profile.Init())
-	return tea.Batch(cmds...)
+	return m.profile.Init()
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "ctrl+c":
 			return m, tea.Quit
-		case "enter":
-			// Return to profile view
-			if m.state == runningCommand {
+		case "q":
+			switch m.state {
+			case viewingResult:
+				m.state = selectCommand
+				return m, nil
+			case viewingDiff:
+				// DiffModel handles q and returns exitDiffMsg
+			default:
+				return m, tea.Quit
+			}
+		case "enter", "esc":
+			if m.state == viewingResult {
 				m.state = selectCommand
 				return m, nil
 			}
 		}
 	case submitProfileMsg:
 		m.state = selectCommand
+		return m, nil
 	case triggerCmdMsg:
-		log.Println("Run command message")
+		if msg.cmd == diffCmd {
+			m.diff = NewDiffModel(m.profile.Profile)
+			m.state = viewingDiff
+			return m, nil
+		}
 		m.state = runningCommand
-		cmd := runCmd(msg.cmd, m.profile.Profile)
+		return m, runCmd(msg.cmd, m.profile.Profile)
+	case finishedCmd:
+		m.commands.running = -1
+		m.resultMsg = msg.msg
+		m.state = viewingResult
+		return m, returnAfterDelay()
+	case returnToMenuMsg:
+		if m.state == viewingResult {
+			m.state = selectCommand
+		}
+		return m, nil
+	case exitDiffMsg:
 		m.state = selectCommand
-		return m, cmd
+		return m, nil
 	}
 
-	cmd := m.updateBubbles(msg)
-	return m, cmd
+	return m, m.updateBubbles(msg)
 }
 
 func (m *Model) updateBubbles(msg tea.Msg) tea.Cmd {
@@ -90,43 +121,67 @@ func (m *Model) updateBubbles(msg tea.Msg) tea.Cmd {
 			m.profile = pm
 		}
 		cmds = append(cmds, cmd)
-	case selectCommand, runningCommand:
+	case selectCommand:
 		model, cmd := m.commands.Update(msg)
 		if c, ok := model.(CommandsModel); ok {
 			m.commands = c
 		}
 		cmds = append(cmds, cmd)
+	case viewingDiff:
+		model, cmd := m.diff.Update(msg)
+		if d, ok := model.(DiffModel); ok {
+			m.diff = d
+		}
+		cmds = append(cmds, cmd)
 	}
-
 	return tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
-	var body, title strings.Builder
+	var s strings.Builder
 
 	switch m.state {
-	// Select profile view
 	case selectProfile:
-		title.WriteString(titleStyle.Render("Dotty · Select a profile"))
-		body.WriteString(m.profile.SelectView())
+		s.WriteString(retroHeader("DOTTY", "dotfiles manager"))
+		s.WriteString(m.profile.SelectView())
 
-	// Main profile view
-	default:
-		title.WriteString(titleStyle.Render("Dotty · Profile: " + m.profile.Profile.Name))
-		body.WriteString(
-			lipgloss.JoinVertical(
-				lipgloss.Top,
-				cmdColContainer.Render(m.commands.CommandSelectView())+"\n",
-				m.profile.ShowView(m.commands.cursor),
-			),
-		)
+	case selectCommand:
+		s.WriteString(retroHeader("DOTTY", "profile: "+m.profile.Profile.Name))
+		s.WriteString(m.commands.CommandSelectView())
+		s.WriteString(dimStyle.Render("\n  ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄") + "\n\n")
+		s.WriteString(m.profile.ShowView())
+		s.WriteString("\n" + helpStyle.Render("  ← → navigate   enter run   q quit"))
+
+	case runningCommand:
+		s.WriteString(retroHeader("DOTTY", "profile: "+m.profile.Profile.Name))
+		s.WriteString("\n  " + titleStyle.Render("Running: "+m.commands.RunningName()+"...") + "\n")
+
+	case viewingResult:
+		s.WriteString(retroHeader("DOTTY", "profile: "+m.profile.Profile.Name))
+		s.WriteString(resultView(m.resultMsg))
+
+	case viewingDiff:
+		s.WriteString(retroHeader("DIFF", "profile: "+m.profile.Profile.Name))
+		s.WriteString(m.diff.View())
 	}
 
-	return rootContainer.Render(
-		title.String(),
-		"\n",
-		BodyContainer.Render(body.String()),
-		"\n",
-		m.commands.View(),
-	)
+	return s.String()
+}
+
+const resultInner = 40
+
+func resultView(msg string) string {
+	content := "  " + msg
+	spaces := strings.Repeat(" ", max(0, resultInner-len([]rune(content))))
+	topDashes := strings.Repeat("─", max(0, resultInner-11)) // after "─[ RESULT ]"
+
+	var s strings.Builder
+	s.WriteString("\n")
+	s.WriteString(dimStyle.Render("  ┌─[ RESULT ]"+topDashes+"┐") + "\n")
+	s.WriteString(dimStyle.Render("  │"+strings.Repeat(" ", resultInner)+"│") + "\n")
+	s.WriteString(dimStyle.Render("  │") + titleStyle.Render(content) + spaces + dimStyle.Render("│") + "\n")
+	s.WriteString(dimStyle.Render("  │"+strings.Repeat(" ", resultInner)+"│") + "\n")
+	s.WriteString(dimStyle.Render("  └"+strings.Repeat("─", resultInner)+"┘") + "\n")
+	s.WriteString("\n" + helpStyle.Render("  returning to menu..."))
+	return s.String()
 }

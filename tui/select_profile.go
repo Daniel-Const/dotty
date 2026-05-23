@@ -8,7 +8,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 
 	"github.com/Daniel-Const/dotty/core"
 )
@@ -35,19 +34,17 @@ type ProfileModel struct {
 }
 
 func NewProfileModel(config *core.DottyConfig) ProfileModel {
-	// Initialise path input model
 	ti := textinput.New()
 	ti.Placeholder = "Profile path"
 	ti.Focus()
 	ti.CharLimit = 200
-	ti.Width = 60
+	ti.Width = 38
 
 	defaultPath := ""
 	home, err := os.UserHomeDir()
 	if err == nil {
 		defaultPath = filepath.Join(home, "/")
 	}
-
 	ti.SetValue(defaultPath)
 
 	profiles := config.Profiles
@@ -71,8 +68,6 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			// TODO: Save new profile to .config/.dottyprofiles
-			// Load new profile from the path
 			path := ""
 			if m.CursorAtEnd() {
 				path = m.path.Value()
@@ -87,11 +82,11 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, submitCmd(nil)
 		case "down":
 			if m.cursor < m.maxCursor {
-				m.cursor += 1
+				m.cursor++
 			}
 		case "up":
 			if m.cursor > 0 {
-				m.cursor -= 1
+				m.cursor--
 			}
 		}
 
@@ -100,7 +95,6 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	m.path, cmd = m.path.Update(msg)
-
 	return m, cmd
 }
 
@@ -108,55 +102,41 @@ func (m ProfileModel) CursorAtEnd() bool {
 	return m.cursor >= m.maxCursor
 }
 
-func (m ProfileModel) ShowView(direction int) string {
-	srcCol := strings.Builder{}
-	dirCol := strings.Builder{}
-	destCol := strings.Builder{}
-	dirChar := "=>"
-	if direction == 1 {
-		dirChar = "<="
-	}
+func (m ProfileModel) ShowView() string {
+	var s strings.Builder
 	for _, dot := range m.GetDots() {
-		src := strings.ReplaceAll(dot.SrcPath, m.Profile.Location+"/", "")
-		srcCol.WriteString(src + "\n")
-		dirCol.WriteString("  " + dirChar + "  \n")
-		destCol.WriteString(dot.DestPath + "\n")
-		// s.WriteString(src + " => " + dot.DestPath + "\n")
+		src := strings.TrimPrefix(strings.TrimPrefix(dot.SrcPath, m.Profile.Location), "/")
+		dots := strings.Repeat("·", max(0, 24-len([]rune(src))))
+		s.WriteString(inactiveStyle.Render("  "+src+" ") + dimStyle.Render(dots+" ") + inactiveStyle.Render(dot.DestPath) + "\n")
 	}
-
-	return lipgloss.JoinHorizontal(
-		lipgloss.Right,
-		srcCol.String(),
-		dirCol.String(),
-		destCol.String(),
-	)
+	return s.String()
 }
 
 func (m ProfileModel) SelectView() string {
 	var s strings.Builder
-
 	s.WriteString("\n")
 
 	for i, p := range m.profiles {
 		if i == m.cursor {
-			s.WriteString(fmt.Sprintf("> %s\n", p))
+			s.WriteString(errStyle.Render("  ▶ ") + titleStyle.Render(p) + "\n")
 		} else {
-			s.WriteString(fmt.Sprintf("%s\n", p))
+			s.WriteString(inactiveStyle.Render("    "+p) + "\n")
 		}
 	}
 
 	s.WriteString("\n")
-
-	s.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("63")).Render("New Profile: "))
-	if m.cursor >= m.maxCursor {
+	s.WriteString(dimStyle.Render("  New Profile: "))
+	if m.CursorAtEnd() {
 		s.WriteString(m.path.View())
 	}
 	s.WriteString("\n\n")
-	s.WriteString(errStyle.Render(m.errMsg))
 
+	if m.errMsg != "" {
+		s.WriteString(errStyle.Render("  "+m.errMsg) + "\n")
+	}
+
+	s.WriteString("\n" + helpStyle.Render(fmt.Sprintf("  ↑↓ navigate   enter select   q quit")))
 	return s.String()
 }
 
-func (m ProfileModel) View() string {
-	return ""
-}
+func (m ProfileModel) View() string { return "" }

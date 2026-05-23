@@ -53,6 +53,7 @@ var (
 				tui.NewModel([]tui.Command{
 					{Name: "Deploy", Desc: DeployCmd.Short},
 					{Name: "Load", Desc: LoadCmd.Short},
+					{Name: "Diff", Desc: "Compare profile files with deployed files"},
 				}, config),
 				tea.WithAltScreen(),
 			)

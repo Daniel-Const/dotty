@@ -22,6 +22,7 @@ var DeployCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		return p.Deploy()
+		_, err = p.Deploy()
+		return err
 	},
 }

@@ -82,27 +82,31 @@ func (p *Profile) LoadMap() (*Profile, error) {
 /*
  * Copy files at destination paths into a profile
  */
-func (p *Profile) Load() error {
+func (p *Profile) Load() (int, error) {
+	count := 0
 	for i := range p.Dots {
-		err := p.Dots[i].Load()
-		if err != nil {
+		if err := p.Dots[i].Load(); err != nil {
 			log.Println(err)
+		} else {
+			count++
 		}
 	}
-	return nil
+	return count, nil
 }
 
 /*
  * Copy all of the dotfiles to the locations in the map file
  */
-func (p *Profile) Deploy() error {
+func (p *Profile) Deploy() (int, error) {
+	count := 0
 	for i := range p.Dots {
 		if err := p.Dots[i].Deploy(); err != nil {
 			log.Println(err)
+		} else {
+			count++
 		}
 	}
-
-	return nil
+	return count, nil
 }
 
 func (p *Profile) Print() {

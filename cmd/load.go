@@ -22,6 +22,7 @@ var LoadCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		return p.Load()
+		_, err = p.Load()
+		return err
 	},
 }
