@@ -31,6 +31,7 @@ type ProfileModel struct {
 	cursor    int
 	maxCursor int
 	profiles  []string
+	config    *core.DottyConfig
 }
 
 func NewProfileModel(config *core.DottyConfig) ProfileModel {
@@ -48,7 +49,7 @@ func NewProfileModel(config *core.DottyConfig) ProfileModel {
 	ti.SetValue(defaultPath)
 
 	profiles := config.Profiles
-	return ProfileModel{ti, "", nil, 0, len(profiles), profiles}
+	return ProfileModel{ti, "", nil, 0, len(profiles), profiles, config}
 }
 
 func (m ProfileModel) GetDots() []*core.Dot {
@@ -69,7 +70,8 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "enter":
 			path := ""
-			if m.CursorAtEnd() {
+			isManual := m.CursorAtEnd()
+			if isManual {
 				path = m.path.Value()
 			} else {
 				path = m.profiles[m.cursor]
@@ -79,6 +81,10 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, submitCmd(err)
 			}
 			m.Profile = p
+			if isManual {
+				m.config.AddProfile(path)
+				m.config.Save()
+			}
 			return m, submitCmd(nil)
 		case "down":
 			if m.cursor < m.maxCursor {

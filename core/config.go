@@ -4,11 +4,42 @@ import (
 	"bufio"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 type DottyConfig struct {
 	Profiles []string
+	Path     string
+}
+
+func (c *DottyConfig) AddProfile(path string) {
+	for _, p := range c.Profiles {
+		if p == path {
+			return
+		}
+	}
+	c.Profiles = append(c.Profiles, path)
+}
+
+func (c *DottyConfig) Save() error {
+	if c.Path == "" {
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Dir(c.Path), 0755); err != nil {
+		return err
+	}
+	f, err := os.Create(c.Path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	for _, p := range c.Profiles {
+		if _, err := f.WriteString(p + "\n"); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 /* TODO: Extend config file
@@ -24,8 +55,7 @@ type DottyConfig struct {
 func LoadConfig(configPath string) (*DottyConfig, error) {
 	file, err := os.Open(configPath)
 	if err != nil {
-		// Failed to read path: Use a default config
-		config := DottyConfig{}
+		config := DottyConfig{Path: configPath}
 		return &config, err
 	}
 
@@ -57,7 +87,6 @@ func LoadConfig(configPath string) (*DottyConfig, error) {
 		return nil, err
 	}
 
-	config := DottyConfig{}
-	config.Profiles = paths
+	config := DottyConfig{Profiles: paths, Path: configPath}
 	return &config, nil
 }
